@@ -1,0 +1,93 @@
+---
+title       : Shiny Application - Titanic Survivors
+subtitle    : Developing Data Products Course Project - Jan 2015
+author      : XY
+job         : 
+framework   : io2012        # {io2012, html5slides, shower, dzslides, ...}
+highlighter : highlight.js  # {highlight.js, prettify, highlight}
+hitheme     : tomorrow      # 
+widgets     : []            # {mathjax, quiz, bootstrap}
+mode        : selfcontained # {standalone, draft}
+knit        : slidify::knit2slides
+---
+
+## Introduction to the Shiny Application
+Backgroud: 
+The sinking of the Titanic is one of the most infamous shipwrecks in history. On April 15, 1912, during her maiden voyage, the Titanic sank after colliding with an iceberg, killing 1502 out of 2224 passengers and crew. One of the reasons that the shipwreck led to such loss of life was that there were not enough lifeboats for the passengers and crew. Although there was some element of luck involved in surviving the sinking, some groups of people were more likely to survive than others, such as women, children, and the upper-class. -- Kaggle
+
+Dataset:
+The data set used in the application is 'ptitanic' from 'rpart.plot' package in R. 
+The description of the data set can be found at: 
+http://artax.karlin.mff.cuni.cz/r-help/library/rpart.plot/html/ptitanic.html. 
+Variables included are passenger class, died or survived, gender, age, number of siblings or spouses aboard,
+number of parents or children aboard. Data transformation were done on some of the variables to simplify the application.
+
+prerequisite: R packages of "ggplot" and "plyr"
+
+---
+
+## Features of the Shiny Application 1
+### VIsualize the survival rate of passengers with certain characteristics
+```{r echo = F, results = 'asis',message=F,warning=F}
+library(ggplot2)
+library(plyr)
+require(rpart.plot)
+library(xtable)
+data(ptitanic)
+data = ptitanic
+
+table0 = data.frame(table(data$pclass,data$survived))
+names(table0)=c("class","survived","Freq")
+p = ggplot(table0, aes(x=class, y=Freq, fill=survived),environment=environment(),ymax=max(table0Freq)) +
+  geom_bar(stat="identity",position="dodge") +
+  scale_fill_brewer(palette="Pastel1") +
+  geom_text(aes(label=Freq),vjust=1.5,
+            position=position_dodge(.9), size=3) +
+  ylim(0,max(table0$Freq)+50) +
+  xlab("Passenger Class") +
+  ylab("Number of Survivors")
+print(p)
+``` 
+
+---
+
+## Features of the Shiny Application 2
+### Caculate the survival rate of passengers with certain characteristics
+```{r echo = F, results = 'asis',message=F,warning=F}
+require(xtable)
+data(ptitanic)
+data = ptitanic
+table0 <- table(data$pclass,data$survived)
+table_sum <- data.frame(matrix(,nrow=dim(table0)[1],ncol=dim(table0)[2]+1))
+rownames(table_sum) = rownames(table0)
+colnames(table_sum) = c("Number of Passengers Died","Number of Passengers Survived","Survival Rate")
+table_sum[1:dim(table0)[1],1:2] = table0
+table_sum[1:dim(table0)[1],3] = round(prop.table(table0,1),2)[,2]
+print(xtable(table_sum),type="html")
+```
+
+
+---
+
+## Features of the Shiny Application 3
+### Find the survival rate of a group of passengers
+```{r echo = F, results = 'asis',message=F,warning=F}
+require(xtable)
+data(ptitanic)
+data = ptitanic
+rate = data.frame(matrix(numeric(),nrow=7,ncol=2))
+names(rate) = c("Variables","You Selected:")                  
+rate[,1] = c("Passenger Class", 
+               "Gener",
+               "Age Group",
+               "Passenger Aboard with Siblings/Spouses",
+               "Passenger Aboard with Parents/Children",
+               "Number of Passengers in the selected group",
+               "Survival Rate of the selected group")
+rate[1:5,2] = as.character(c("1st", "male","20-30 yrs","Yes","Yest"))
+rate[6,2] = 3
+rate[7,2] = 0.67
+
+print(xtable(rate),type="html")
+```
+---
